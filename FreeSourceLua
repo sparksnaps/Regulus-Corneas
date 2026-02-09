@@ -1,0 +1,510 @@
+-- um free source i guess my fellow skidders have fun
+
+local p=game.Players.LocalPlayer
+local g=p.PlayerGui
+local h=g:FindFirstChild("Hotbar")
+local b=h:FindFirstChild("Backpack")
+local f=b:FindFirstChild("Hotbar")
+local names={"Absolute Stillness「絶対静止」","Time-Sever Barrage「時間断裂」","Authority Push「権能圧殺」","Frozen Reality Break「世界停止破壊」"}
+for i=1,4 do local slot=f:FindFirstChild(tostring(i)) slot.Base.ToolName.Text=names[i] slot.Base.ToolName.Font=Enum.Font.Fantasy end
+
+local player=p
+local character=player.Character or player.CharacterAdded:Wait()
+local humanoid=character:WaitForChild("Humanoid")
+local root=character:WaitForChild("HumanoidRootPart")
+
+local function stopAllAnims()
+    for _,t in pairs(humanoid:GetPlayingAnimationTracks()) do
+        t:Stop()
+    end
+end
+
+local function playAnimTrack(animId,speed,startTime)
+    stopAllAnims()
+    local a=Instance.new("Animation")
+    a.AnimationId=animId
+    local track=humanoid:LoadAnimation(a)
+    track:Play()
+    track:AdjustSpeed(speed)
+    track.TimePosition=startTime
+    track:AdjustSpeed(speed)
+    return track
+end
+
+local function makeVFX()
+    local part=Instance.new("Part")
+    part.Name="BehindFX"
+    part.Size=Vector3.new(1,1,1)
+    part.Transparency=1
+    part.Anchored=true
+    part.CanCollide=false
+    part.Parent=workspace
+    local offset=CFrame.new(0,0,2)
+    local conn=game:GetService("RunService").Heartbeat:Connect(function()
+        if not character.Parent or not root.Parent then
+            conn:Disconnect()
+            if part.Parent then part:Destroy() end
+            return
+        end
+        part.CFrame=root.CFrame*offset
+    end)
+    
+    local ptc1=Instance.new("ParticleEmitter")
+    ptc1.Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(150,144,149)),ColorSequenceKeypoint.new(1,Color3.fromRGB(150,144,149))})
+    ptc1.Drag=6
+    ptc1.LightInfluence=0
+    ptc1.Speed=NumberRange.new(8,70)
+    ptc1.Size=NumberSequence.new({NumberSequenceKeypoint.new(0,4,0),NumberSequenceKeypoint.new(1,4,0)})
+    ptc1.RotSpeed=NumberRange.new(-120,120)
+    ptc1.Texture='rbxassetid://9544354287'
+    ptc1.EmissionDirection=Enum.NormalId.Back
+    ptc1.Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,1,0),NumberSequenceKeypoint.new(0.09,0.59,0),NumberSequenceKeypoint.new(0.25,0.76,0),NumberSequenceKeypoint.new(0.67,0.93,0),NumberSequenceKeypoint.new(1,1,0)})
+    ptc1.SpreadAngle=Vector2.new(10,30)
+    ptc1.Rotation=NumberRange.new(-360,360)
+    ptc1.Lifetime=NumberRange.new(0.45,1.4)
+    ptc1.Parent=part
+    
+    local ptc2=Instance.new("ParticleEmitter")
+    ptc2.Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(150,144,149)),ColorSequenceKeypoint.new(1,Color3.fromRGB(150,144,149))})
+    ptc2.Drag=6
+    ptc2.ZOffset=1
+    ptc2.LightInfluence=0
+    ptc2.Acceleration=Vector3.new(0,-15,0)
+    ptc2.Speed=NumberRange.new(8,70)
+    ptc2.Size=NumberSequence.new({NumberSequenceKeypoint.new(0,4,0),NumberSequenceKeypoint.new(1,4,0)})
+    ptc2.RotSpeed=NumberRange.new(-120,120)
+    ptc2.Texture='rbxassetid://7216854921'
+    ptc2.EmissionDirection=Enum.NormalId.Back
+    ptc2.Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,0.47,0),NumberSequenceKeypoint.new(0.25,0.76,0),NumberSequenceKeypoint.new(0.67,0.93,0),NumberSequenceKeypoint.new(1,1,0)})
+    ptc2.SpreadAngle=Vector2.new(25,30)
+    ptc2.Rotation=NumberRange.new(-360,360)
+    ptc2.LightEmission=1
+    ptc2.Lifetime=NumberRange.new(0.45,1.4)
+    ptc2.Parent=part
+    
+    local ptc3=Instance.new("ParticleEmitter")
+    ptc3.Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(150,144,149)),ColorSequenceKeypoint.new(1,Color3.fromRGB(150,144,149))})
+    ptc3.Drag=6
+    ptc3.ZOffset=1
+    ptc3.LightInfluence=0
+    ptc3.Squash=NumberSequence.new({NumberSequenceKeypoint.new(0,0,0),NumberSequenceKeypoint.new(1,3,0)})
+    ptc3.Speed=NumberRange.new(12,102)
+    ptc3.Size=NumberSequence.new({NumberSequenceKeypoint.new(0,2,0),NumberSequenceKeypoint.new(1,2,0)})
+    ptc3.Texture='rbxassetid://9544366974'
+    ptc3.EmissionDirection=Enum.NormalId.Back
+    ptc3.Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,0.77,0),NumberSequenceKeypoint.new(0.46,0.92,0),NumberSequenceKeypoint.new(1,1,0)})
+    ptc3.SpreadAngle=Vector2.new(0,30)
+    ptc3.Rotation=NumberRange.new(-90,-90)
+    ptc3.LightEmission=1
+    ptc3.Lifetime=NumberRange.new(0.45,1.4)
+    ptc3.Orientation=Enum.ParticleOrientation.VelocityParallel
+    ptc3.Parent=part
+    
+    task.delay(1,function()
+        if conn then conn:Disconnect() end
+        if part.Parent then part:Destroy() end
+    end)
+end
+
+humanoid.AnimationPlayed:Connect(function(track)
+    local animId=tonumber(track.Animation.AnimationId:match("%d+") or "0")
+    
+    if animId==10468665991 then
+        playAnimTrack("rbxassetid://140164642047188",1.3,6.7)
+        makeVFX()
+    elseif animId==10466974800 then
+        playAnimTrack("rbxassetid://13560306510",3,0)
+    elseif animId==10471336737 then
+        local t=playAnimTrack("rbxassetid://120001337057214",6,0.5)
+        task.delay(0.45,function()
+            pcall(function()
+                local Test=game.ReplicatedStorage.Resources.IceSlashVFX.Template.M1.Attachment
+                local test=Test:Clone()
+                test.Parent=game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart")
+                for _,child in ipairs(test:GetDescendants()) do
+                    if child:IsA("ParticleEmitter") then
+                        child:Emit(15)
+                        child.Enabled=false
+                    end
+                end
+            end)
+        end)
+        task.delay(1.8,function() t:Stop() end)
+    elseif animId==12510170988 then
+        playAnimTrack("rbxassetid://83249039916902",1,5.5)
+    elseif animId==15955393872 then
+        local t=playAnimTrack("rbxassetid://93125757361125",2,0)
+        task.delay(2.5,function() t:Stop() end)
+    elseif animId==12447707844 then
+        playAnimTrack("rbxassetid://133818134745501",1,0)
+        local s=Instance.new("Sound")
+        s.SoundId="rbxassetid://135119008364294"
+        s.Volume=8
+        s.Parent=root
+        s.TimePosition=0
+        s:Play()
+        game:GetService("Debris"):AddItem(s,8)
+    elseif animId==10479335397 then
+        local t=playAnimTrack("rbxassetid://13630786846",1.5,0)
+        task.delay(1.2,function() t:Stop() end)
+    elseif animId==10503381238 then
+        playAnimTrack("rbxassetid://18179181663",1.5,0)
+    elseif animId==10470104242 then
+        playAnimTrack("rbxassetid://18464356233",0,0)
+    end
+end)
+
+stopAllAnims()
+local initialAnim=Instance.new("Animation")
+initialAnim.AnimationId="rbxassetid://121032789756540"
+local initialTrack=humanoid:LoadAnimation(initialAnim)
+initialTrack:Play()
+initialTrack:AdjustSpeed(1)
+initialTrack.TimePosition=0
+initialTrack:AdjustSpeed(1)
+
+local initialSnd=Instance.new("Sound")
+initialSnd.SoundId="rbxassetid://95653624175590"
+initialSnd.Volume=8
+initialSnd.Parent=root
+initialSnd:Play()
+game:GetService("Debris"):AddItem(initialSnd,8)
+
+task.delay(3.5,function() initialTrack:Stop() end)
+
+local StopIds={[17859015788]=true,[10469493270]=true,[10469630950]=true,[10469639222]=true,[10469643643]=true}
+local Replacements={
+    ["10469493270"]={id="rbxassetid://17325513870",speed=1.5,startTime=0,sfx="rbxassetid://81022009064023",sfxStartTime=0},
+    ["10469630950"]={id="rbxassetid://17325510002",speed=1.5,startTime=0.2,sfx="rbxassetid://99595080052889",sfxStartTime=0},
+    ["10469639222"]={id="rbxassetid://17325513870",speed=1.5,startTime=0.1,sfx="rbxassetid://122359705789431",sfxStartTime=0},
+    ["10469643643"]={id="rbxassetid://18169291044",speed=1.5,startTime=0,sfx="rbxassetid://83947221567929",sfxStartTime=0},
+    ["17859015788"]={id="rbxassetid://18897119503",speed=1.6,startTime=0,sfx="rbxassetid://SFX5",sfxStartTime=0},
+    ["11365563255"]={id="rbxassetid://14516273501",speed=1,startTime=0,sfx="rbxassetid://SFX6",sfxStartTime=0}
+}
+
+local function createArmTrail(armName)
+    local char=game.Players.LocalPlayer.Character
+    if not char then return end
+    local arm=char:FindFirstChild(armName) or char:FindFirstChild(armName:gsub("Arm","Hand")) or char:FindFirstChild(armName:gsub("Arm","UpperArm")) or char:FindFirstChild(armName:gsub("Arm","LowerArm"))
+    if not arm then return end
+    
+    local part=Instance.new("Part")
+    part.Size=Vector3.new(1.05,2.1,1.05)
+    part.Material=Enum.Material.Neon
+    part.Color=Color3.fromRGB(255,255,255)
+    part.Transparency=0.3
+    part.CanCollide=false
+    part.Anchored=false
+    part.CFrame=arm.CFrame
+    part.Parent=workspace
+    
+    local weld=Instance.new("Weld")
+    weld.Part0=arm
+    weld.Part1=part
+    weld.Parent=part
+    
+    local a0=Instance.new("Attachment",part)
+    a0.Position=Vector3.new(0,-1,0)
+    local a1=Instance.new("Attachment",part)
+    a1.Position=Vector3.new(0,1,0)
+    
+    local trail=Instance.new("Trail")
+    trail.Attachment0=a0
+    trail.Attachment1=a1
+    trail.Color=ColorSequence.new(Color3.fromRGB(255,255,255))
+    trail.Lifetime=0.6
+    trail.LightEmission=1
+    trail.Texture="rbxassetid://5699911427"
+    trail.Parent=part
+    
+    game:GetService("TweenService"):Create(part,TweenInfo.new(0.6,Enum.EasingStyle.Linear),{Transparency=1}):Play()
+    task.delay(0.6,function() if part then part:Destroy() end end)
+end
+
+local queue={}
+local animating=false
+
+local function playAnimQueue(id)
+    if animating then
+        table.insert(queue,id)
+        return
+    end
+    animating=true
+    local info=Replacements[tostring(id)]
+    if info then
+        local a=Instance.new("Animation")
+        a.AnimationId=info.id
+        local track=humanoid:LoadAnimation(a)
+        track.TimePosition=info.startTime
+        track:Play()
+        track:AdjustSpeed(info.speed)
+        
+        if info.sfx and info.sfx~="" then
+            local s=Instance.new("Sound")
+            s.SoundId=info.sfx
+            s.Volume=1
+            s.Parent=root
+            if info.sfxStartTime then
+                s.TimePosition=info.sfxStartTime
+            end
+            s:Play()
+            s.Ended:Connect(function() s:Destroy() end)
+        end
+        
+        if tostring(id)=="10469493270" then createArmTrail("Right Arm") end
+        if tostring(id)=="10469630950" then createArmTrail("Left Arm") end
+        if tostring(id)=="10469639222" then createArmTrail("Right Arm") end
+        if tostring(id)=="10469643643" then createArmTrail("Right Leg") end
+        
+        track.Stopped:Connect(function()
+            animating=false
+            if #queue>0 then
+                playAnimQueue(table.remove(queue,1))
+            end
+        end)
+    else
+        animating=false
+    end
+end
+
+local function stopAnimsQueue()
+    for _,t in ipairs(humanoid:GetPlayingAnimationTracks()) do
+        local animId=tonumber(t.Animation.AnimationId:match("%d+") or "0")
+        if StopIds[animId] then
+            t:Stop()
+        end
+    end
+end
+
+humanoid.AnimationPlayed:Connect(function(track)
+    local id=tonumber(track.Animation.AnimationId:match("%d+") or "0")
+    if StopIds[id] then
+        stopAnimsQueue()
+        track:Stop()
+        playAnimQueue(id)
+    end
+end)
+
+local function fixVelocity(v)
+    if v:IsA("BodyVelocity") then
+        v.Velocity=Vector3.new(v.Velocity.X,0,v.Velocity.Z)
+    end
+end
+
+character.DescendantAdded:Connect(fixVelocity)
+for _,v in pairs(character:GetDescendants()) do
+    fixVelocity(v)
+end
+
+player.CharacterAdded:Connect(function(c)
+    character=c
+    root=character:WaitForChild("HumanoidRootPart")
+    humanoid=character:WaitForChild("Humanoid")
+    character.DescendantAdded:Connect(fixVelocity)
+    for _,v in pairs(character:GetDescendants()) do
+        fixVelocity(v)
+    end
+end)
+
+for i,v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+    if v:IsA('Accessory') then v:Destroy() end
+end
+
+local function DisableCollisions(object)
+    if object:IsA("BasePart") then
+        object.CanCollide=false
+        object.CanTouch=false
+        object.CanQuery=false
+    end
+end
+
+local function AttachAccessories(accessoryTable)
+    local player=game.Players.LocalPlayer
+    local character=player.Character or player.CharacterAdded:Wait()
+    for _,accessoryData in pairs(accessoryTable) do
+        local item=game:GetObjects("rbxassetid://"..tostring(accessoryData.AssetID))[1]
+        if not item then
+            warn("Failed to load item with ID: "..tostring(accessoryData.AssetID))
+            return
+        end
+        
+        if item:IsA("Tool") then
+            local newAccessory=Instance.new("Accessory")
+            local handle=item:FindFirstChildWhichIsA("Part") or item:FindFirstChildWhichIsA("MeshPart")
+            if handle then
+                handle.Parent=newAccessory
+                newAccessory.Parent=character
+                newAccessory.Name="ConvertedAccessory"
+                DisableCollisions(handle)
+                local targetPart=character:FindFirstChild(accessoryData.AttachTo)
+                if targetPart then
+                    local weld=Instance.new("Weld")
+                    weld.Part0=targetPart
+                    weld.Part1=handle
+                    weld.C0=CFrame.new(accessoryData.Position)*CFrame.Angles(math.rad(accessoryData.Rotation.X),math.rad(accessoryData.Rotation.Y),math.rad(accessoryData.Rotation.Z))
+                    weld.Parent=targetPart
+                end
+            end
+        else
+            item.Parent=character
+            local targetPart=character:FindFirstChild(accessoryData.AttachTo)
+            if targetPart then
+                local attachPart=item:FindFirstChildWhichIsA("MeshPart") or item:FindFirstChildWhichIsA("Part")
+                if attachPart then
+                    DisableCollisions(attachPart)
+                    local weld=Instance.new("Weld")
+                    weld.Part0=targetPart
+                    weld.Part1=attachPart
+                    weld.C0=CFrame.new(accessoryData.Position)*CFrame.Angles(math.rad(accessoryData.Rotation.X),math.rad(accessoryData.Rotation.Y),math.rad(accessoryData.Rotation.Z))
+                    weld.Parent=targetPart
+                end
+            end
+        end
+    end
+end
+
+local Accessories={
+    {AssetID=88261802728370,AttachTo="Right Arm",Position=Vector3.new(0,0.13,0),Rotation=Vector3.new(0,0,0)},
+    {AssetID=138977700438157,AttachTo="Left Arm",Position=Vector3.new(0,0.13,0),Rotation=Vector3.new(0,0,0)},
+    {AssetID=71978230239610,AttachTo="Torso",Position=Vector3.new(0,-0.81,0.2),Rotation=Vector3.new(0,0,0)},
+    {AssetID=93967818980492,AttachTo="Head",Position=Vector3.new(0,0,-0.01),Rotation=Vector3.new(0,180,0)},
+    {AssetID=125361508835239,AttachTo="Head",Position=Vector3.new(0,0.2,0.1),Rotation=Vector3.new(0,0,0)}
+}
+AttachAccessories(Accessories)
+
+local ch=game.Players.LocalPlayer.Character
+pcall(function() ch.Pants:Destroy() end)
+local v=Instance.new("Pants",ch)
+v.PantsTemplate='rbxassetid://104844425274461'
+v.Name='Pants'
+pcall(function() ch.Shirt:Destroy() end)
+local v=Instance.new("Shirt",ch)
+v.ShirtTemplate='rbxassetid://130201119182932'
+v.Name='Shirt'
+pcall(function() ch['Shirt Graphic']:Destroy() end)
+local v=Instance.new("ShirtGraphic",ch)
+v.Graphic='rbxassetid://0'
+v.Name='Shirt Graphic'
+
+local g=Instance.new("ScreenGui",game.CoreGui)
+local i=Instance.new("ImageLabel",g)
+i.Size=UDim2.new(0,50,0,50)
+i.Position=UDim2.new(0.5,-25,0.85,-25)
+i.BackgroundTransparency=1
+i.Image="rbxassetid://106421078959350"
+
+local s=Instance.new("Sound",i)
+s.SoundId="rbxassetid://9116795681"
+s.Volume=1
+
+local TweenService=game:GetService("TweenService")
+
+local function bump()
+    s:Play()
+    local size=50+math.random(10,25)
+    local tweenUp=TweenService:Create(i,TweenInfo.new(0.1,Enum.EasingStyle.Sine,Enum.EasingDirection.Out),{Size=UDim2.new(0,size,0,size),Position=UDim2.new(0.5,-size/2,0.85,-size/2)})
+    local tweenDown=TweenService:Create(i,TweenInfo.new(0.15,Enum.EasingStyle.Sine,Enum.EasingDirection.In),{Size=UDim2.new(0,50,0,50),Position=UDim2.new(0.5,-25,0.85,-25)})
+    tweenUp:Play()
+    tweenUp.Completed:Wait()
+    tweenDown:Play()
+end
+
+spawn(function()
+    while g.Parent do
+        wait(math.random(2,5))
+        bump()
+    end
+end)
+
+game.Players.LocalPlayer.CharacterAdded:Connect(function() g:Destroy() end)
+
+local ps=game:GetService("Players")
+local LocalPlayer=ps.LocalPlayer
+
+if not LocalPlayer then return end
+
+local function noBarrageArms(accessory)
+    if accessory:IsA("Accessory") and accessory.Name=="BarrageBind" then
+        pcall(function()
+            accessory:SetAttribute("Times",nil)
+        end)
+    end
+end
+
+LocalPlayer.CharacterAdded:Connect(function(character)
+    character.ChildAdded:Connect(noBarrageArms)
+end)
+
+if LocalPlayer.Character then
+    LocalPlayer.Character.ChildAdded:Connect(noBarrageArms)
+end
+
+pcall(function() getgenv().Idle:Disconnect() end)
+
+getgenv().Idle=game.Players.LocalPlayer.Character.Humanoid.AnimationPlayed:Connect(function(v)
+    if v.Animation.AnimationId=="rbxassetid://14516273501" then
+        local Anim=Instance.new("Animation")
+        Anim.AnimationId="rbxassetid://119293848229043"
+        local humanoid=game.Players.LocalPlayer.Character.Humanoid
+        local k=humanoid:LoadAnimation(Anim)
+        
+        k.Priority=Enum.AnimationPriority.Idle
+        k.Looped=true
+        k:Play(0.3)
+        k:AdjustSpeed(0)
+        
+        local startTime=0.75
+        local endTime=0.8
+        local cycleDuration=1.5
+        local timeElapsed=0
+        
+        local connection
+        connection=game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
+            timeElapsed=(timeElapsed+deltaTime)%(cycleDuration*2)
+            local alpha=(math.sin((timeElapsed/cycleDuration)*math.pi-math.pi/2)+1)/2
+            k.TimePosition=startTime+(endTime-startTime)*alpha
+        end)
+        
+        v.Stopped:Wait()
+        k:Stop(0.3)
+        connection:Disconnect()
+    end
+end)
+
+local pss=game:GetService("Players").LocalPlayer
+local rs=game:GetService("RunService")
+
+pcall(function()
+    local gui=pss.PlayerGui.Bar.MagicHealth
+    local bar=gui.Health.Bar.Bar
+    local glow=gui.Health.Glow
+    local label=gui.TextLabel
+    
+    label.RichText=true
+    label.Font=Enum.Font.Fantasy
+    label.Text="A B S O L U T E  A U T H O R I T Y"
+    
+    bar.Image="rbxassetid://17136251960"
+    bar.ImageColor3=Color3.fromRGB(255,255,255)
+    glow.Image="rbxassetid://17136251821"
+    glow.ImageColor3=Color3.fromRGB(200,200,255)
+    
+    local conn
+    conn=rs.Heartbeat:Connect(function()
+        bar.Image="rbxassetid://17136251960"
+        glow.Image="rbxassetid://17136251821"
+    end)
+    
+    task.delay(50,function()
+        if conn then conn:Disconnect() end
+    end)
+end)
+
+game:GetService("StarterGui"):SetCore("SendNotification",{
+    Title="Regulus Corneas",
+    Text="Made By sparksnaps UwU",
+    Icon="rbxassetid://70694556543296",
+    Duration=50
+})
+
+setclipboard("https://discord.gg/vSceT2Mjww")
