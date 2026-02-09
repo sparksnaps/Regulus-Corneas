@@ -1,5 +1,4 @@
 -- um free source i guess my fellow skidders have fun
-
 local p=game.Players.LocalPlayer
 local g=p.PlayerGui
 local h=g:FindFirstChild("Hotbar")
@@ -611,44 +610,54 @@ getgenv().Idle=game.Players.LocalPlayer.Character.Humanoid.AnimationPlayed:Conne
         local endTime=0.8
         local cycleDuration=1.5
         local timeElapsed=0
+        
         local connection
         connection=game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
             timeElapsed=(timeElapsed+deltaTime)%(cycleDuration*2)
             local alpha=(math.sin((timeElapsed/cycleDuration)*math.pi-math.pi/2)+1)/2
             k.TimePosition=startTime+(endTime-startTime)*alpha
         end)
+        
         v.Stopped:Wait()
         k:Stop(0.3)
         connection:Disconnect()
     end
 end)
+
 local pss=game:GetService("Players").LocalPlayer
 local rs=game:GetService("RunService")
+
 pcall(function()
     local gui=pss.PlayerGui.Bar.MagicHealth
     local bar=gui.Health.Bar.Bar
     local glow=gui.Health.Glow
     local label=gui.TextLabel
+    
     label.RichText=true
     label.Font=Enum.Font.Fantasy
     label.Text="A B S O L U T E  A U T H O R I T Y"
+    
     bar.Image="rbxassetid://17136251960"
     bar.ImageColor3=Color3.fromRGB(255,255,255)
     glow.Image="rbxassetid://17136251821"
     glow.ImageColor3=Color3.fromRGB(200,200,255)
+    
     local conn
     conn=rs.Heartbeat:Connect(function()
         bar.Image="rbxassetid://17136251960"
         glow.Image="rbxassetid://17136251821"
     end)
+    
     task.delay(50,function()
         if conn then conn:Disconnect() end
     end)
 end)
+
 game:GetService("StarterGui"):SetCore("SendNotification",{
     Title="Regulus Corneas",
     Text="Made By sparksnaps UwU",
     Icon="rbxassetid://70694556543296",
     Duration=50
 })
+
 setclipboard("https://discord.gg/vSceT2Mjww")
