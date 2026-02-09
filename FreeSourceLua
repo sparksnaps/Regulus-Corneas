@@ -13,6 +13,137 @@ local character=player.Character or player.CharacterAdded:Wait()
 local humanoid=character:WaitForChild("Humanoid")
 local root=character:WaitForChild("HumanoidRootPart")
 
+local TextService=game:GetService("TextService")
+local TweenService=game:GetService("TweenService")
+local Debris=game:GetService("Debris")
+
+local function easeOutQuad(x)
+    return 1+2.70158*math.pow(x-1,3)+1.70158*math.pow(x-1,2)
+end
+
+local function getColor(t,keypoints)
+    local k1,k2,alpha=keypoints[1],keypoints[1],0.5
+    for i=1,#keypoints-1 do
+        if keypoints[i].Time<=t and t<=keypoints[i+1].Time then
+            k1=keypoints[i]
+            k2=keypoints[i+1]
+            alpha=(t-k1.Time)/(k2.Time-k1.Time)
+            return k1.Value:lerp(k2.Value,alpha)
+        end
+    end
+    return k1.Value
+end
+
+local function createKJTemplate()
+    local sg=Instance.new("ScreenGui")
+    sg.Name="KJDialogueTemplate"
+    sg.ResetOnSpawn=false
+    sg.DisplayOrder=1000
+    sg.IgnoreGuiInset=true
+    local holder=Instance.new("Frame",sg)
+    holder.Name="Holder"
+    holder.Size=UDim2.new(1,0,1,0)
+    holder.Position=UDim2.new(0.5,0,1,0)
+    holder.AnchorPoint=Vector2.new(0.5,1)
+    holder.BackgroundTransparency=1
+    holder.ClipsDescendants=false
+    holder.ZIndex=10
+    local template=Instance.new("Frame",holder)
+    template.Name="Template"
+    template.Size=UDim2.new(1,0,1,0)
+    template.BackgroundTransparency=1
+    template.ClipsDescendants=false
+    template.ZIndex=10
+    return sg
+end
+
+local function retireTexts(frame)
+    for _,v in frame:GetChildren() do
+        if v.Name=="letter" then
+            v:SetAttribute("Ending",true)
+            TweenService:Create(v,TweenInfo.new(0.5,Enum.EasingStyle.Quad,Enum.EasingDirection.In),{Position=v.Position+UDim2.new(0,0,0,50),TextTransparency=1,TextStrokeTransparency=1}):Play()
+            Debris:AddItem(v,0.5)
+        end
+    end
+end
+
+local function doText(textData,speakerName)
+    local playerGui=player:WaitForChild("PlayerGui")
+    local guiName=speakerName.."KJUI"
+    local gui=playerGui:FindFirstChild(guiName)
+    if not gui then
+        gui=createKJTemplate()
+        gui.Name=guiName
+        gui.Parent=playerGui
+    end
+    gui.Enabled=true
+    local templateFrame=gui.Holder:FindFirstChild("Template")
+    local totalWidth,currentX,typeDelay=0,0,0
+    for _,textPart in ipairs(textData) do
+        local chars=string.split(textPart.Text,"")
+        local font=textPart.Bold and Enum.Font.SourceSansBold or textPart.Italic and Enum.Font.SourceSansItalic or Enum.Font.SourceSans
+        for _,char in chars do totalWidth=totalWidth+TextService:GetTextSize(char,25,font,Vector2.new(100,100)).X end
+    end
+    for _,textPart in ipairs(textData) do
+        local chars=string.split(textPart.Text,"")
+        local font=textPart.Bold and Enum.Font.SourceSansBold or textPart.Italic and Enum.Font.SourceSansItalic or Enum.Font.SourceSans
+        for _,char in chars do
+            local textSize=TextService:GetTextSize(char,25,font,Vector2.new(100,100))
+            local letter=Instance.new("TextLabel")
+            letter.AnchorPoint=Vector2.new(0,0.5)
+            letter.Position=UDim2.new(0.5,math.floor(currentX-totalWidth/2)-15,0.5,170)
+            letter.Size=UDim2.new(0,textSize.X,0,textSize.Y)
+            letter.Text=char
+            letter.Name="letter"
+            letter.Font=font
+            letter.TextSize=25
+            letter.ZIndex=20
+            letter.Parent=gui.Holder.Template
+            letter.BackgroundTransparency=1
+            letter.TextStrokeColor3=textPart.TextStrokeColor
+            letter.TextStrokeTransparency=1
+            letter.TextTransparency=1
+            local finalX=math.floor(currentX-totalWidth/2)-15
+            local startingX=finalX+100
+            task.delay(typeDelay,function()
+                local startTimeOs=os.clock()
+                repeat
+                    local progress=math.min((os.clock()-startTimeOs)/0.35,1)
+                    local shakeProgress=math.min((os.clock()-startTimeOs)/textPart.Shake.Lifetime,1)
+                    local shake=not textPart.Shake.Enabled and UDim2.new(0,0,0,0) or UDim2.new(0,math.random(-textPart.Shake.Intensity,textPart.Shake.Intensity)*(1-shakeProgress),0,math.random(-textPart.Shake.Intensity,textPart.Shake.Intensity)*(1-shakeProgress))
+                    local fade=1-easeOutQuad(progress)
+                    local currentXPos=startingX+(finalX-startingX)*easeOutQuad(progress)
+                    if letter and letter.Parent then
+                        letter.TextStrokeTransparency=(1-progress)^10
+                        letter.TextTransparency=fade
+                        letter.TextSize=25+25*fade
+                        letter.TextColor3=getColor(progress,textPart.Color.Keypoints)
+                        letter.Position=UDim2.new(0.5,currentXPos,0.5,170)+shake
+                    end
+                    task.wait()
+                until os.clock()-startTimeOs>math.max(0.35,textPart.Shake.Lifetime) or not letter or not letter:IsDescendantOf(gui) or letter:GetAttribute("Ending")
+                if letter and letter.Parent then
+                    letter.TextStrokeTransparency=0
+                    letter.TextTransparency=0
+                    letter.TextSize=25
+                    letter.TextColor3=textPart.Color.Keypoints[#textPart.Color.Keypoints].Value
+                    letter.Position=UDim2.new(0.5,finalX,0.5,170)
+                end
+            end)
+            typeDelay=typeDelay+textPart.TypeSpeed
+            currentX=currentX+textSize.X+1
+        end
+    end
+    task.spawn(function()
+        task.wait(5)
+        if gui and gui.Parent then
+            retireTexts(gui.Holder.Template)
+            task.wait(1)
+            gui:Destroy()
+        end
+    end)
+end
+
 local function stopAllAnims()
     for _,t in pairs(humanoid:GetPlayingAnimationTracks()) do
         t:Stop()
@@ -144,6 +275,18 @@ humanoid.AnimationPlayed:Connect(function(track)
         s.TimePosition=0
         s:Play()
         game:GetService("Debris"):AddItem(s,8)
+        
+        local ultDialogue={
+            textData={
+                {Text="You Really ",Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(255,255,255)),ColorSequenceKeypoint.new(1,Color3.fromRGB(255,255,255))}),TextStrokeColor=Color3.fromRGB(0,0,0),Bold=false,Italic=false,Shake={Enabled=false,Intensity=1,Lifetime=2},TypeSpeed=0.04},
+                {Text="Pissing Me Off ",Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(0,0,0)),ColorSequenceKeypoint.new(1,Color3.fromRGB(255,255,0))}),TextStrokeColor=Color3.fromRGB(0,0,0),Bold=true,Italic=true,Shake={Enabled=true,Intensity=2,Lifetime=1},TypeSpeed=0.04},
+            },
+            soundId="rbxassetid://135119008364294",
+            timePosition=0,
+            volume=8,
+            deleteTime=8
+        }
+        doText(ultDialogue.textData,player.Name)
     elseif animId==10479335397 then
         local t=playAnimTrack("rbxassetid://13630786846",1.5,0)
         task.delay(1.2,function() t:Stop() end)
@@ -169,6 +312,19 @@ initialSnd.Volume=8
 initialSnd.Parent=root
 initialSnd:Play()
 game:GetService("Debris"):AddItem(initialSnd,8)
+
+local finalDialogue={
+    textData={
+        {Text="Am The Sin ",Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(255,255,255)),ColorSequenceKeypoint.new(1,Color3.fromRGB(255,255,255))}),TextStrokeColor=Color3.fromRGB(0,0,0),Bold=false,Italic=false,Shake={Enabled=false,Intensity=1,Lifetime=2},TypeSpeed=0.04},
+        {Text="Arbitration Of The Witches Cult Representing Greed ",Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(0,0,0)),ColorSequenceKeypoint.new(1,Color3.fromRGB(255,255,255))}),TextStrokeColor=Color3.fromRGB(0,0,0),Bold=true,Italic=true,Shake={Enabled=true,Intensity=2,Lifetime=1},TypeSpeed=0.04},
+        {Text="Regulus Corneas",Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(255,255,255)),ColorSequenceKeypoint.new(1,Color3.fromRGB(255,255,0))}),TextStrokeColor=Color3.fromRGB(0,0,0),Bold=false,Italic=false,Shake={Enabled=false,Intensity=1,Lifetime=2},TypeSpeed=0.04}
+    },
+    soundId="rbxassetid://95653624175590",
+    timePosition=0,
+    volume=8,
+    deleteTime=8
+}
+doText(finalDialogue.textData,player.Name)
 
 task.delay(3.5,function() initialTrack:Stop() end)
 
@@ -397,8 +553,6 @@ local s=Instance.new("Sound",i)
 s.SoundId="rbxassetid://9116795681"
 s.Volume=1
 
-local TweenService=game:GetService("TweenService")
-
 local function bump()
     s:Play()
     local size=50+math.random(10,25)
@@ -457,54 +611,44 @@ getgenv().Idle=game.Players.LocalPlayer.Character.Humanoid.AnimationPlayed:Conne
         local endTime=0.8
         local cycleDuration=1.5
         local timeElapsed=0
-        
         local connection
         connection=game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
             timeElapsed=(timeElapsed+deltaTime)%(cycleDuration*2)
             local alpha=(math.sin((timeElapsed/cycleDuration)*math.pi-math.pi/2)+1)/2
             k.TimePosition=startTime+(endTime-startTime)*alpha
         end)
-        
         v.Stopped:Wait()
         k:Stop(0.3)
         connection:Disconnect()
     end
 end)
-
 local pss=game:GetService("Players").LocalPlayer
 local rs=game:GetService("RunService")
-
 pcall(function()
     local gui=pss.PlayerGui.Bar.MagicHealth
     local bar=gui.Health.Bar.Bar
     local glow=gui.Health.Glow
     local label=gui.TextLabel
-    
     label.RichText=true
     label.Font=Enum.Font.Fantasy
     label.Text="A B S O L U T E  A U T H O R I T Y"
-    
     bar.Image="rbxassetid://17136251960"
     bar.ImageColor3=Color3.fromRGB(255,255,255)
     glow.Image="rbxassetid://17136251821"
     glow.ImageColor3=Color3.fromRGB(200,200,255)
-    
     local conn
     conn=rs.Heartbeat:Connect(function()
         bar.Image="rbxassetid://17136251960"
         glow.Image="rbxassetid://17136251821"
     end)
-    
     task.delay(50,function()
         if conn then conn:Disconnect() end
     end)
 end)
-
 game:GetService("StarterGui"):SetCore("SendNotification",{
     Title="Regulus Corneas",
     Text="Made By sparksnaps UwU",
     Icon="rbxassetid://70694556543296",
     Duration=50
 })
-
 setclipboard("https://discord.gg/vSceT2Mjww")
